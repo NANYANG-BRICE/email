@@ -1,9 +1,13 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
+const cors = require('cors'); // Importer le package CORS
 
 const app = express();
 const port = 3000;
+
+// Middleware pour activer CORS
+app.use(cors());
 
 // Middleware pour parser le JSON
 app.use(express.json());
@@ -21,6 +25,11 @@ const transporter = nodemailer.createTransport({
 app.post('/send-email', async (req, res) => {
     const { to, subject, html } = req.body;
 
+    // Vérifier que toutes les données nécessaires sont présentes
+    if (!to || !subject || !html) {
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
+
     try {
         // Envoyer l'email
         await transporter.sendMail({
@@ -32,7 +41,7 @@ app.post('/send-email', async (req, res) => {
 
         res.status(200).json({ message: 'Email sent successfully' });
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error sending email:', error);
         res.status(500).json({ message: 'Failed to send email' });
     }
 });
